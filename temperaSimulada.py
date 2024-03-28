@@ -38,42 +38,31 @@ def retornaTemp(t, max_iter):
     return 100*((max_iter-t)/max_iter)**2
 
 def temperaSimulada(cidades, sol_inicial, max_iter):
+    solucoesnotempo = []
     solucao_atual = sol_inicial
     custo_atual = calcula_custo(cidades, solucao_atual)
     for t in range(max_iter):
+        solucoesnotempo.append(solucao_atual)
         T = retornaTemp(t, max_iter)
         if T == 0:
             return solucao_atual
         prox_solucao = gera_solucao(np.shape(cidades)[0])
         # print(f"solucao atual:{solucao_atual}")
-        print(f"custo atual:{custo_atual}")
+        # print(f"custo atual:{custo_atual}")
         # print(f"solucao vizinha:{prox_solucao}")
         prox_custo = calcula_custo(cidades, prox_solucao)
-        print(f"custo vizinho:{prox_custo}")
+        # print(f"custo vizinho:{prox_custo}")
         delta_custos = custo_atual - prox_custo
-        print(f"delta:{delta_custos}")
+        # print(f"delta:{delta_custos}")
         if delta_custos > 0:
-            print("MELHOR")
+            # print("MELHOR")
             solucao_atual = prox_solucao
             custo_atual = prox_custo
         else:
             rand = random.random() 
             prob = math.e**(delta_custos/T)
             if rand < prob:
-                print(f"PIOR COM PROB {rand} contra {prob}")
+                # print(f"PIOR COM PROB {rand} contra {prob}")
                 solucao_atual = prox_solucao
                 custo_atual = prox_custo
-    return solucao_atual
-
-n_cidades = 20
-cidades = cria_cidades(n_cidades)
-s = gera_solucao(n_cidades)
-print(s)
-
-inp = None
-while inp != "exit":
-    inp = input("'exit' para sair")
-
-    sf = temperaSimulada(cidades, s, max_iter=1000)
-    print(sf)
-    print(calcula_custo(cidades, sf))
+    return solucoesnotempo
