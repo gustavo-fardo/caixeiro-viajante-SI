@@ -1,6 +1,8 @@
 import numpy as np
 import random
 import math
+from temperaSimulada import gera_solucao, calcula_custo, cria_cidades
+
 
 tipos_mutacoes = ["posicao", "ordem", "embaralhamento"]
 
@@ -9,26 +11,33 @@ tipos_mutacoes = ["posicao", "ordem", "embaralhamento"]
 class Genetico:
     def __init__(
             self,
+            cidades,
             n_populacao = 6,
             r_descendentes = 6,
             max_geracoes = 1000,
             p_cross = 0.8,
             p_mut = 0.05,
-            i_mut = 2 # default mutacao por posicao
+            i_mut = 2, # default mutacao por posicao
             ):
-
-        n_cidades = 10
-        print("Matrix de Cidades:")
-        cidades = self.cria_cidades(n_cidades)
-
+        
+        self.cidades = cidades
+        self.n_populacao = n_populacao
+        self.r_descendentes = r_descendentes
+        self.max_geracoes = max_geracoes
+        self.p_cross = p_cross
+        self.p_mut = p_mut
+        self.i_mut = i_mut
+        
+    def run(self):
+        solucoesnotempo = []
+        n_cidades = len(self.cidades[0])
+        geracao = 0
         populacao = []        
-        for i in range (n_populacao):
-            individuo = self.gera_solucao(n_cidades)
+        for i in range (self.n_populacao):
+            individuo = gera_solucao(n_cidades)
             populacao.append(individuo)
 
-        geracao = 0
-
-        while (geracao < max_geracoes):
+        while (geracao < self.max_geracoes):
 
             print("Pais:")
             pais = populacao.copy()
@@ -38,7 +47,7 @@ class Genetico:
             print("Custos:")
             custos = []
             for pai in pais:
-                custos.append(self.calcula_custo(cidades, pai))
+                custos.append(calcula_custo(self.cidades, pai))
             print(custos)
 
             print("Fitness:")
@@ -46,44 +55,25 @@ class Genetico:
             print(fitness)
 
             print("Selecionados:")
-            selecionados = self.roleta(r_descendentes, fitness, n_populacao, pais)
+            selecionados = self.roleta(self.r_descendentes, fitness, self.n_populacao, pais)
 
             print("Cruzados:")
-            cruzados = self.cruzamento(selecionados, p_cross)
+            cruzados = self.cruzamento(selecionados, self.p_cross)
 
             print("Mutados:")
-            mutados = self.mutacao(cruzados, p_mut, i_mut)
+            mutados = self.mutacao(cruzados, self.p_mut, self.i_mut)
 
             print("Melhores:")
-            populacao = self.seleciona_melhores(cidades, pais, mutados, n_populacao)
+            populacao = self.seleciona_melhores(self.cidades, pais, mutados, self.n_populacao)
+
+            print("Melhor custo da geração:")
+            melhor_da_geracao = calcula_custo(self.cidades, populacao[0])
+            print(melhor_da_geracao)
+            solucoesnotempo.append(melhor_da_geracao)
         
             geracao += 1
-        
 
-    def cria_cidades(self, num_cidades):
-        cidades = []
-        for i in range(num_cidades):
-            adj_cidade = []
-            for i in range(num_cidades):
-                adj_cidade.append(0)
-            cidades.append(adj_cidade)
-
-        for i in range(num_cidades):
-            j = 0
-            while j < i:
-                rand_dist = random.randint(1, 10)
-                cidades[i][j] = rand_dist
-                cidades[j][i] = rand_dist
-                j+=1
-
-        for i in range(num_cidades):
-            print(cidades[i])
-
-        return cidades
-
-    def gera_solucao(self, n_cidades):
-        sol = np.random.permutation(n_cidades)
-        return np.append(sol, sol[0])
+        return populacao[0], solucoesnotempo
 
     def fitness(self, custos):
         fitness = []
@@ -98,12 +88,6 @@ class Genetico:
             fitness.append(f)
 
         return fitness
-
-    def calcula_custo(self, cidades, solucao):
-        custo = 0
-        for i in range(1, len(solucao)):
-            custo+=cidades[solucao[i]][solucao[i-1]]
-        return custo
 
     def roleta(self, r_descendentes, fitness, n_populacao, populacao):
         f_total = n_populacao - 1
@@ -246,7 +230,7 @@ class Genetico:
         melhores = []
 
         for cromossomo in uniao:
-            custo = self.calcula_custo(cidades, cromossomo)
+            custo = calcula_custo(cidades, cromossomo)
             custos.append(custo)
 
         c_ordenados = custos.copy()
@@ -258,7 +242,10 @@ class Genetico:
 
         return melhores
 
+cidades = cria_cidades(10)
+
 genetico = Genetico(
+    cidades=cidades,
     n_populacao=16,
     r_descendentes=16,
     max_geracoes=1000,
@@ -266,3 +253,5 @@ genetico = Genetico(
     p_mut=0.05,
     i_mut=2
 )
+
+genetico.run()
